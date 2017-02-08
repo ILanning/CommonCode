@@ -1,0 +1,136 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\MonoGame\v3.0\MonoGame.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\MonoGame\v3.0\MonoGame.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{2A484AD8-F3ED-4526-BC46-B4249F8AF18A}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CommonCode</RootNamespace>
+    <AssemblyName>CommonCode</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="OpenTK">
+      <HintPath>$(MonoGameInstallDirectory)\MonoGame\v3.0\Assemblies\DesktopGL\OpenTK.dll</HintPath>
+    </Reference>
+    <Reference Include="NVorbis">
+      <HintPath>$(MonoGameInstallDirectory)\MonoGame\v3.0\Assemblies\DesktopGL\NVorbis.dll</HintPath>
+    </Reference>
+    <Reference Include="MonoGame.Framework">
+      <HintPath>$(MonoGameInstallDirectory)\MonoGame\v3.0\Assemblies\DesktopGL\MonoGame.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Collision\AABox.cs" />
+    <Compile Include="Collision\ICollidable.cs" />
+    <Compile Include="Collision\Convex.cs" />
+    <Compile Include="Drawing\2D\Line2D.cs" />
+    <Compile Include="UI\Button.cs" />
+    <Compile Include="UI\Page.cs" />
+    <Compile Include="Drawing\2D\Sprite.cs" />
+    <Compile Include="UI\StringPositionColor.cs" />
+    <Compile Include="To be merged - updated\TextBox.cs" />
+    <Compile Include="UI\TextItem.cs" />
+    <Compile Include="UI\IClickable.cs" />
+    <Compile Include="UI\ScrollBar.cs" />
+    <Compile Include="Drawing\Cameras\Camera.cs" />
+    <Compile Include="Drawing\3D\Cube.cs" />
+    <Compile Include="Drawing\Cameras\Flat Camera.cs" />
+    <Compile Include="Drawing\3D\Line3D.cs" />
+    <Compile Include="Drawing\Cameras\Random Camera.cs" />
+    <Compile Include="Drawing\3D\RenderShape.cs" />
+    <Compile Include="Drawing\Cameras\Spherical Camera.cs" />
+    <Compile Include="Drawing\3D\Spirograph.cs" />
+    <Compile Include="Drawing\3D\TexturedPlane.cs" />
+    <Compile Include="Drawing\3D\WireBox.cs" />
+    <Compile Include="Drawing\3D\WrappedModel.cs" />
+    <Compile Include="Content\AnimationBuilder.cs" />
+    <Compile Include="Content\Builder.cs" />
+    <Compile Include="Content\CollisionDataBuilder.cs" />
+    <Compile Include="Content\TexturedPlaneBuilder.cs" />
+    <Compile Include="Content\VectorBuilders.cs" />
+    <Compile Include="Content\WrappedModelBuilder.cs" />
+    <Compile Include="Drawing\2D\Animation.cs" />
+    <Compile Include="Drawing\2D\AnimationStateMachine.cs" />
+    <Compile Include="Coordinate.cs" />
+    <Compile Include="Drawing\DrawListItem.cs" />
+    <Compile Include="GameGlobals.cs" />
+    <Compile Include="Content\DynamicContentManager.cs" />
+    <Compile Include="ErrorScreen.cs" />
+    <Compile Include="GameSettings.cs" />
+    <Compile Include="ICopyable.cs" />
+    <Compile Include="Managers\InputManager.cs" />
+    <Compile Include="Logger.cs" />
+    <Compile Include="Managers\AudioManager.cs" />
+    <Compile Include="Managers\FontManager.cs" />
+    <Compile Include="Managers\KeybindManager.cs" />
+    <Compile Include="Managers\ScreenManager.cs" />
+    <Compile Include="Modifiers\2D\ColorModifiers2D.cs" />
+    <Compile Include="Modifiers\2D\IModifiable2D.cs" />
+    <Compile Include="Modifiers\2D\IModifier2D.cs" />
+    <Compile Include="Modifiers\2D\MoveModifiers2D.cs" />
+    <Compile Include="Modifiers\2D\OrbitModifier2D.cs" />
+    <Compile Include="Modifiers\2D\RotateModifiers2D.cs" />
+    <Compile Include="Modifiers\2D\ScaleModifiers2D.cs" />
+    <Compile Include="Modifiers\3D\ColorModifiers3D.cs" />
+    <Compile Include="Modifiers\3D\IModifiable3D.cs" />
+    <Compile Include="Modifiers\3D\IModifier3D.cs" />
+    <Compile Include="Modifiers\3D\MoveModifiers3D.cs" />
+    <Compile Include="Modifiers\3D\OrbitModifier3D.cs" />
+    <Compile Include="Modifiers\3D\RotateModifiers3D.cs" />
+    <Compile Include="Modifiers\3D\ScaleModifiers3D.cs" />
+    <Compile Include="Modifiers\3D\SpirographModifiers.cs" />
+    <Compile Include="To be merged - updated\ResizingBox.cs" />
+    <Compile Include="Screen.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Windows\Containers\IContainer.cs" />
+    <Compile Include="Windows\Containers\ScrollableList.cs" />
+    <Compile Include="Windows\Containers\SpaceFillList.cs" />
+    <Compile Include="Windows\Elements\ButtonElement.cs" />
+    <Compile Include="Windows\Elements\Element.cs" />
+    <Compile Include="Windows\Elements\ElementBuilders.cs" />
+    <Compile Include="Windows\Elements\FlatColorElement.cs" />
+    <Compile Include="Windows\Elements\IDataDisplay.cs" />
+    <Compile Include="Windows\Elements\IInputElement.cs" />
+    <Compile Include="Windows\Elements\LineElement.cs" />
+    <Compile Include="Windows\Elements\RGBElement.cs" />
+    <Compile Include="Windows\Elements\TextElement.cs" />
+    <Compile Include="Windows\Elements\TextListElement.cs" />
+    <Compile Include="Windows\Elements\TextureElement.cs" />
+    <Compile Include="Windows\Window.cs" />
+    <Compile Include="Windows\WindowEnums.cs" />
+    <Compile Include="Windows\WindowFormat.cs" />
+    <Compile Include="Windows\WindowManager.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
