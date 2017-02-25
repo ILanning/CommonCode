@@ -15,10 +15,6 @@ build/
 [Bb]in/
 [Oo]bj/
 
-# Non-Code Folders
-Content Files/
-Meta Development Files/
-
 # MSTest test Results
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
@@ -150,3 +146,17 @@ $RECYCLE.BIN/
 
 # Mac crap
 .DS_Store
+
+# Edits ----
+
+# Python
+*.pyc
+
+# Non-Code Folders
+Content Files/
+Meta Development Files/
+
+#Compressed Files
+*.7z
+*.zip
+*.rar

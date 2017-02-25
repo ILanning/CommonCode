@@ -28,6 +28,7 @@ namespace CommonCode
         /// The dictionary containing everything this manager has loaded.
         /// </summary>
         Dictionary<string,object> FileDictionary;
+        Dictionary<string, string> aliasDictionary;
         /// <summary>
         /// Game reference used in texture/font/model loading.
         /// </summary>
@@ -51,6 +52,7 @@ namespace CommonCode
             XNALoader = new ContentManager(game.Services, contentDirectory);
             baseDirectory = contentDirectory;
             FileDictionary = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            aliasDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             Initialized = true;
         }
 
@@ -60,6 +62,7 @@ namespace CommonCode
             XNALoader = content;
             baseDirectory = contentDirectory;
             FileDictionary = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            aliasDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             Initialized = true;
         }
 
@@ -86,8 +89,8 @@ namespace CommonCode
                 {
                     string path = filePath.Remove(filePath.Length - (extension.Length));
 
-                    FileDictionary.Add(filePath, XNALoader.Load<>(path));
                 }
+                    FileDictionary.Add(filePath, XNALoader.Load<>(path));
                 else if (extension == ".png" || extension == ".jpg" ||
                          extension == ".bmp" || extension == ".hdr" ||
                          extension == ".dds" || extension == ".pfm" ||
@@ -132,39 +135,78 @@ namespace CommonCode
                 }
             //}
         }
-
-        public T Load<T>(string filePath)
+        /// <summary>
+        /// Loads a file from storage, or returns previously loaded files.
+        /// </summary>
+        /// <typeparam name="T">The type of the object being loaded.</typeparam>
+        /// <param name="name">The path or alias of the file to load.</param>
+        /// <returns></returns>
+        public T Load<T>(string name)
         {
             //filePath = filePath.Replace("\\", "//");
             //if(!filePath.Contains(baseDirectory) && !Path.IsPathRooted(filePath))
-              //  filePath = Path.Combine(baseDirectory, filePath.Replace(".\\", ""));
+            //  filePath = Path.Combine(baseDirectory, filePath.Replace(".\\", ""));
+            if (aliasDictionary.ContainsKey(name))
+                name = aliasDictionary["filePath"];
 
-            if (!FileDictionary.ContainsKey(filePath))
-                addAsset<T>(filePath);
+            if (!FileDictionary.ContainsKey(name))
+                addAsset<T>(name);
 
-            return (T)FileDictionary[filePath];
+            return (T)FileDictionary[name];
         }
 
         /// <summary>
         /// Disposes of the given content.  Do not call this on content that is still in use.
         /// </summary>
-        public void Unload(string filePath)
+        /// <param name="name">The path or alias of the file to unload.</param>
+        public void Unload(string name)
         {
-            if (FileDictionary.ContainsKey(filePath))
+            if (aliasDictionary.ContainsKey(name))
+                name = aliasDictionary[name];
+            if (FileDictionary.ContainsKey(name))
             {
-                if (FileDictionary[filePath] is GraphicsResource)
-                    ((GraphicsResource)FileDictionary[filePath]).Dispose();
-                FileDictionary.Remove(filePath);
+                if (FileDictionary[name] is GraphicsResource)
+                    ((GraphicsResource)FileDictionary[name]).Dispose();
+                FileDictionary.Remove(name);
+                if (aliasDictionary.ContainsValue(name))
+                {
+                    LinkedList<string> invalidEntries = new LinkedList<string>();
+                    foreach ( KeyValuePair<string, string> pair in aliasDictionary)
+                    {
+                        if (pair.Value == name)
+                            invalidEntries.AddLast(pair.Key);
+                    }
+                    while(invalidEntries.First != null)
+                    {
+                        aliasDictionary.Remove(invalidEntries.First.Value);
+                        invalidEntries.RemoveFirst();
+                    }
+                }
             }
         }
 
         /// <summary>
         /// Disposes of the given content.  Do not call this on content that is still in use.
         /// </summary>
-        public void Unload(string[] filePaths)
+        public void Unload(string[] names)
         {
-            foreach (string path in filePaths)
+            foreach (string path in names)
                 Unload(path);
+        }
+        /// <summary>
+        /// Adds an alias to a filepath that may also be used to find the file.
+        /// </summary>
+        /// <param name="path">Path to add an alias to.</param>
+        /// <param name="alias">Alternate name for your path.</param>
+        /// <returns>Returns true if that path exists in the dictionary, otherwise false.</returns>
+        public bool Alias(string path, string alias)
+        {
+            if(FileDictionary.ContainsKey(path))
+            {
+                aliasDictionary.Add(alias, path);
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -183,6 +225,7 @@ namespace CommonCode
             Game = null;
             baseDirectory = null;
             FileDictionary = null;
+            aliasDictionary = null;
         }
     }
 
