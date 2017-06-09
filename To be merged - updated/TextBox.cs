@@ -1,4 +1,4 @@
-﻿/*using System;
+﻿using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -27,45 +27,33 @@ namespace CommonCode.UI
         public event EventHandler Clicked;
         public event EventHandler Collided;
 
-        public TextBox(string text, Rectangle dimensions, string spriteFont, Color color)
+        public TextBox(string text, Rectangle dimensions, string spriteFont, Color? color = null, Rectangle? scrollBarDimensions = null)
         {
+            if (color == null)
+                this.color = Color.White;
+            else
+                this.color = (Color)color;
             this.text = text;
             font = spriteFont;
-            this.color = color;
             screenPosition = new Vector2(dimensions.X, dimensions.Y);
-            this.dimensions = new Vector2(dimensions.Width - ScrollBar.spriteSheet.Width - 2, dimensions.Height);
-            lines = WordWrap(this.dimensions, text, font, color);
-            if (lines.Length * 20 + 5 > dimensions.Height)
+            Rectangle scrollDim;
+            if (scrollBarDimensions != null)
+                scrollDim = (Rectangle)scrollBarDimensions;
+            else
+                scrollDim = new Rectangle(dimensions.X + dimensions.Width - (int)(ScrollBar.spriteSheet.Width * 0.5f), dimensions.Y - (int)(ScrollBar.spriteSheet.Width * 0.5f), ScrollBar.spriteSheet.Width - 2, dimensions.Height);
+            this.dimensions = new Vector2(dimensions.Width - scrollDim.Width, dimensions.Height);
+            lines = WordWrap(this.dimensions, text, font, this.color);
+            if (lines.Length * 20 + 5 > dimensions.Height) //If the text is long enough that a scroll bar is needed
             {
                 scrollBarUsable = true;
-                scrollBar = new ScrollBar(true, lines.Length * 20 + 5, dimensions.Height, 0, new Vector2(dimensions.X + dimensions.Width - ScrollBar.spriteSheet.Width, dimensions.Y));
+                scrollBar = new ScrollBar(lines.Length * 20 + 5, scrollDim.Height, 0, new Coordinate(scrollDim.X, scrollDim.Y));
+                scrollBar.Color = this.color;
             }
             else
             {
                 scrollBarUsable = false;
-                scrollBar = new ScrollBar(true, dimensions.Height + 1, dimensions.Height, 0, new Vector2(dimensions.X + dimensions.Width - ScrollBar.spriteSheet.Width, dimensions.Y));
-                scrollBar.Color = new Color(128, 128, 128);
-            }
-        }
-
-        public TextBox(string text, Rectangle dimensions, Rectangle scrollBarDimensions, string spriteFont, Color color)
-        {
-            this.text = text;
-            font = spriteFont;
-            this.color = color;
-            screenPosition = new Vector2(dimensions.X, dimensions.Y);
-            this.dimensions = new Vector2(dimensions.Width - scrollBarDimensions.Width, dimensions.Height);
-            lines = WordWrap(this.dimensions, text, font, color);
-            if (lines.Length * 20 + 5 > dimensions.Height)
-            {
-                scrollBarUsable = true;
-                scrollBar = new ScrollBar(true, lines.Length * 20 + 5, scrollBarDimensions.Height, 0, new Vector2(scrollBarDimensions.X, scrollBarDimensions.Y));
-            }
-            else
-            {
-                scrollBarUsable = false;
-                scrollBar = new ScrollBar(true, dimensions.Height + 1, scrollBarDimensions.Height, 0, new Vector2(scrollBarDimensions.X, scrollBarDimensions.Y));
-                scrollBar.Color = new Color(128, 128, 128);
+                scrollBar = new ScrollBar(dimensions.Height + 1, scrollDim.Height, 0, new Coordinate(scrollDim.X, scrollDim.Y));
+                scrollBar.Color = new Color(this.color.R / 2, this.color.G / 2, this.color.B / 2, this.color.A);
             }
         }
 
@@ -82,8 +70,6 @@ namespace CommonCode.UI
                 rotation -= MathHelper.TwoPi;
             else if (rotation < 0)
                 rotation += MathHelper.TwoPi;
-
-            scrollBar.Update();
 
             for (int i = 0; i < modifiers.Length; i++)
             {
@@ -114,7 +100,7 @@ namespace CommonCode.UI
                 sb.DrawString(ScreenManager.Globals.Fonts["Default"], lines[i].Text, lines[i].Position + positionOffset + screenPosition - offsetFromScroll, lines[i].Color);
             sb.End();
             sb.GraphicsDevice.ScissorRectangle = new Rectangle();
-            sb.GraphicsDevice.RasterizerState.ScissorTestEnable = false;
+            //sb.GraphicsDevice.RasterizerState.ScissorTestEnable = false;
             sb.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied);
         }
 
@@ -132,6 +118,10 @@ namespace CommonCode.UI
             bool endOfText = false;
             List<char> seperators = new List<Char>(new char[] { ' ', '/', '\n', '-', ',', ';', ':', '?', ')' });
 
+            if (text == "")
+            {
+                return new StringPositionColor[] {};
+            }
             do
             {
                 string currentLine = "";
@@ -181,7 +171,7 @@ namespace CommonCode.UI
                             lineEnd = firstSeperatorLocation + 1;
                             wordsParsedThisLine++;
                             break;
-                        }*
+                        }*/
                     }
                     //Step through
                     //Redesign:  Find first seperator, bail and push line if \n is found.
@@ -206,8 +196,11 @@ namespace CommonCode.UI
                     }
                 } while (!lineTooLong && !endOfText);
 
-                if (wordsParsedThisLine == 0)//If this, it got stuck because a single "word" took up more than a whole line, causing an infinite loop.
+                if (wordsParsedThisLine == 0)//If this, it got stuck because a single "word" took up more than a whole line.
+                {
+                    //TODO: write a function that can break up a word
                     throw new ArgumentException("A word could not be broken up to fit within boxDimensions.", "text");
+                }
                 //if (endOfText && ScreenManager.DrawData.Fonts[font].MeasureString(currentLine).X < boxDimensions.X)
                 //    previousLine = currentLine;
 
@@ -260,7 +253,7 @@ namespace CommonCode.UI
             get { return screenPosition; } 
             set
             {
-                scrollBar.Offset += value - screenPosition;
+                scrollBar.Position += (Coordinate)(value - screenPosition);
                 screenPosition = value; 
             } 
         }
@@ -270,7 +263,7 @@ namespace CommonCode.UI
             get { return positionOffset; } 
             set 
             {
-                scrollBar.Offset += value - positionOffset;
+                scrollBar.Position += (Coordinate)(value - positionOffset);
                 positionOffset = value; 
             } 
         }
@@ -289,6 +282,7 @@ namespace CommonCode.UI
             set
             {
                 lines = WordWrap(dimensions, value, font, color);
+                //scrollBar.Resize((int)(lines.Length * 20 + 5 > dimensions.Y ? lines.Length * 20 + 5 : dimensions.Y + 5), (int)dimensions.Y);
                 text = value;
             }
         }
@@ -334,4 +328,4 @@ namespace CommonCode.UI
 
         #endregion
     }
-}*/
+}

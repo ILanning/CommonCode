@@ -3,27 +3,37 @@ using System.Xml.Serialization;
 
 namespace CommonCode.Content
 {
-    public struct PointBuilder
+    /*public struct CoordinateBuilder
     {
         public int X;
         public int Y;
 
-        public PointBuilder(int x, int y)
+        public CoordinateBuilder(int x, int y)
         {
             X = x;
             Y = y;
         }
 
-        public static implicit operator Point(PointBuilder a)
+        public static implicit operator Coordinate(CoordinateBuilder a)
+        {
+            return new Coordinate(a.X, a.Y);
+        }
+
+        public static implicit operator CoordinateBuilder(Coordinate a)
+        {
+            return new CoordinateBuilder(a.X, a.Y);
+        }
+
+        public static implicit operator Point(CoordinateBuilder a)
         {
             return new Point(a.X, a.Y);
         }
 
-        public static implicit operator PointBuilder(Point a)
+        public static implicit operator CoordinateBuilder(Point a)
         {
-            return new PointBuilder(a.X, a.Y);
+            return new CoordinateBuilder(a.X, a.Y);
         }
-    }
+    }*/
 
     public struct Vector2Builder
     {

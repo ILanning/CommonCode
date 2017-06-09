@@ -1,0 +1,21 @@
+﻿Multithreaded loading:
+	Basic implementation -
+		Each thread handles a single item from the pool of content to be loaded
+		Every time a thread finishes, it asks for a new item to load
+		Should the ContentManager be responsible for managing the threads itself?
+		The manager is updated once per frame, looking at each thread to see if it needs more work
+		It handles all assignments, avoiding multithreading problems
+		It may also handle collecting the loaded assets and handing them to the content manager, if seperate
+
+	Functions - 
+		void UpdatePool()
+			Goes through and deals with any changes to thread states
+		void LoadWorker()
+			
+
+
+
+
+
+			chef'n
+			turner

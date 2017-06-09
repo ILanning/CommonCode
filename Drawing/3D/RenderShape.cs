@@ -48,8 +48,8 @@ namespace CommonCode.Drawing
         }
 
         public abstract void Update();
-        public abstract void Draw(BasicEffect effect, GraphicsDevice graphics);
-        public abstract void DrawGuidlines(BasicEffect effect, GraphicsDevice graphics);
+        public abstract void Draw(Effect effect, GraphicsDevice graphics);
+        public abstract void DrawGuidelines(Effect effect, GraphicsDevice graphics);
 
         protected Vector3 position;
         protected Quaternion rotation = Quaternion.Identity;

@@ -120,10 +120,12 @@ namespace CommonCode
             }
         }
 
-        public override void Draw(BasicEffect effect, GraphicsDevice graphics)
+        public override void Draw(Effect effect, GraphicsDevice graphics)
         {
-            effect.TextureEnabled = false;
-            effect.VertexColorEnabled = true;
+            if (!(effect is BasicEffect))
+                throw new ArgumentException("effect", "Cameras only support the BasicEffect");
+            ((BasicEffect)effect).TextureEnabled = false;
+            ((BasicEffect)effect).VertexColorEnabled = true;
             //effect.CommitChanges();
             DrawBox(lookAtPosition, 0.1f, Color.White, graphics);
         }

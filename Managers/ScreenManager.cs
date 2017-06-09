@@ -5,14 +5,14 @@ using System.Collections.Generic;
 namespace CommonCode
 {
     /// <summary>
-    /// A GameComponent level manager that keeps track of active screens.
+    /// A singleton GameComponent level manager that keeps track of active screens.
     /// </summary>
     public class ScreenManager : DrawableGameComponent
     {
-        bool isInitialized; 
-        List<Screen> screens = new List<Screen>();
-        List<Screen> screensToBeAdded;
-        private static bool isMouseVisible = false;
+        static bool isInitialized = false; 
+        static List<Screen> screens = new List<Screen>();
+        static List<Screen> screensToBeAdded = new List<Screen>();
+        static bool isMouseVisible = false;
 
         public static GameGlobals Globals;
         public static Game StaticGame;
@@ -27,18 +27,13 @@ namespace CommonCode
             }
         }
 
-        public ScreenManager(Game game)
-            : base(game)
-        {
-            StaticGame = game;
-            screensToBeAdded = new List<Screen>();
-        }
+        public ScreenManager(Game game) : base(game) { StaticGame = game; }
 
         /// <summary>
         /// Adds the given screen to the top of the screen stack at the beginning of the next frame.
         /// </summary>
         /// <param name="screen">Screen to add.</param>
-        public void AddScreen(Screen screen)
+        public static void AddScreen(Screen screen)
         {
             screensToBeAdded.Add(screen);
         }
@@ -47,7 +42,7 @@ namespace CommonCode
         /// Removes a screen from the draw/update list without deleting it.
         /// </summary>
         /// <param name="screen">Screen to disable.</param>
-        public void RemoveScreen(Screen screen)
+        public static void RemoveScreen(Screen screen)
         {
             for (int i = 0; i < screens.Count; i++)
                 if (screens[i] == screen)
@@ -61,7 +56,7 @@ namespace CommonCode
         /// Removes the given screen and unloads its assets.
         /// </summary>
         /// <param name="screen">Screen to destroy.</param>
-        public void DeleteScreen(Screen screen)
+        public static void DeleteScreen(Screen screen)
         {
             for (int i = 0; i < screens.Count; i++)
                 if (screens[i] == screen)
@@ -75,7 +70,7 @@ namespace CommonCode
         /// Returns an array of all screens.
         /// </summary>
         /// <returns></returns>
-        public Screen[] GetScreens()
+        public static Screen[] GetScreens()
         {
             return screens.ToArray();
         }
@@ -84,16 +79,21 @@ namespace CommonCode
         {
             Content = new DynamicContentManager(Game, Game.Content.RootDirectory);
             FontManager.Content = Content;
+            SphericalCamera spherical = new SphericalCamera(Vector3.Zero, Vector2.Zero, 25);
+            Globals = new GameGlobals(GraphicsDevice, null, new SpriteBatch(GraphicsDevice), spherical);
+            Globals.SetData();
             base.Initialize();
             isInitialized = true;
         }
 
-        protected override void LoadContent()
+        public void LoadContent2()
         {
+            foreach (Screen s in screensToBeAdded)
+            {
+                screens.Insert(0, s);
+            }
+            screensToBeAdded.Clear();
             base.LoadContent();
-            SphericalCamera spherical = new SphericalCamera(new Vector3(0, 0, 0), new Vector2(0), 25);
-            Globals = new GameGlobals(GraphicsDevice, null, new SpriteBatch(GraphicsDevice), spherical);
-            Globals.SetData();
             foreach (Screen screen in screens)
                 if (!screen.isContentLoaded)
                     screen.LoadContent();
@@ -108,7 +108,7 @@ namespace CommonCode
 
         public override void Update(GameTime gameTime)
         {
-            if (GameSettings.RunInBackground || Game.IsActive)
+            if (bool.Parse(GameSettings.Settings["RunInBackground"]) || Game.IsActive)
             {
                 //Add and remove new screens only before the update loop begins, 
                 //to prevent confusion and cut down on error checking
@@ -123,7 +123,6 @@ namespace CommonCode
                 }
                 foreach (Screen s in screensToBeAdded)
                 {
-                    s.screenManager = this;
                     if (isInitialized && !s.isContentLoaded)
                         s.LoadContent();
                     screens.Insert(0, s);
@@ -131,7 +130,7 @@ namespace CommonCode
                 if(screensToBeAdded.Count > 0)
                     screensToBeAdded.Clear();
                 //Only the topmost screen can recieve user input
-                screens[0].HandleInput();
+                screens[0].HandleInput(gameTime);
                 //Any screen can be updated, so long as the screens above it allow it
                 for (int i = 0; i < screens.Count; i++)
                 {

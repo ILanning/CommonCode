@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace CommonCode.Drawing
 {
-    public class Spirograph : IModifiable3D, ICopyable<Spirograph>
+    public class Spirograph : IModifiable3D, ICopyable<Spirograph>, IDrawable3D
     {
         /// <summary>
         /// r value, radius of moving circle
@@ -32,6 +32,7 @@ namespace CommonCode.Drawing
         protected Vector3 worldPosition = Vector3.Zero;
         protected Quaternion rotation = Quaternion.Identity;
         protected Color color;
+        protected float depthBias = 0;
 
         public bool DoneSlowDrawing { get{return !slowDrawing;} }
         protected bool slowDrawing = false;
@@ -92,11 +93,11 @@ namespace CommonCode.Drawing
             lineVertices = new VertexPositionColor[lineCount];
             vertexOrder = new int[(lineCount * 2)];
 
-            float step = (MathHelper.TwoPi * radians) / (float)(lineCount-1);
+            float step = (MathHelper.TwoPi * radians) / (lineCount-1);
 
             for (int i = 0; i < lineCount; i++)
             {
-                Vector2 tempVector = FindValue(step * (float)i);
+                Vector2 tempVector = findValue(step * i);
                 lineVertices[i] = new VertexPositionColor(new Vector3(0, tempVector.Y, tempVector.X), Color);
             }
 
@@ -106,13 +107,16 @@ namespace CommonCode.Drawing
             }
         }
 
-        public Vector2 FindValue(float angle)
+        /// <summary>
+        /// Finds the point at a given angle within the spirograph.  Due to the nature of spirographs, return results don't necessarily loop at two radians.
+        /// </summary>
+        Vector2 findValue(float angle)
         {
-            return new Vector2((float)((largerRadius + smallerRadius) * Math.Cos(angle) - distToPoint * Math.Cos((largerRadius + smallerRadius)/smallerRadius * angle)),
+            return new Vector2((float)((largerRadius + smallerRadius) * Math.Cos(angle) - distToPoint * Math.Cos((largerRadius + smallerRadius) / smallerRadius * angle)),
                                (float)((largerRadius + smallerRadius) * Math.Sin(angle) - distToPoint * Math.Sin((largerRadius + smallerRadius) / smallerRadius * angle)));
         }
 
-        public void Update()
+        public void Update(GameTime gameTime)
         {
 
             timeSpentForSlowDraw++;
@@ -130,18 +134,21 @@ namespace CommonCode.Drawing
             }
         }
 
-        public void Draw(BasicEffect effect, GraphicsDevice graphics)
+        public void Draw(Effect effect, GraphicsDevice graphics)
         {
-            if (slowDrawing)
-                SlowDraw(effect, graphics);
-            else
+            if (effect is BasicEffect)
             {
-                effect.TextureEnabled = false;
-                effect.VertexColorEnabled = true;
-                effect.World = Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(worldPosition);
-                effect.CurrentTechnique.Passes[0].Apply();
-                graphics.DrawUserIndexedPrimitives<VertexPositionColor>(PrimitiveType.LineList,
-                                                                    lineVertices, 0, lineVertices.Length, vertexOrder, 0, lineVertices.Length - 1);
+                if (slowDrawing)
+                    slowDraw(effect, graphics);
+                else
+                {
+                    ((BasicEffect)effect).TextureEnabled = false;
+                    ((BasicEffect)effect).VertexColorEnabled = true;
+                    ((BasicEffect)effect).World = Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(worldPosition);
+                    effect.CurrentTechnique.Passes[0].Apply();
+                    graphics.DrawUserIndexedPrimitives<VertexPositionColor>(PrimitiveType.LineList,
+                                                                        lineVertices, 0, lineVertices.Length, vertexOrder, 0, lineVertices.Length - 1);
+                }
             }
         }
 
@@ -149,22 +156,26 @@ namespace CommonCode.Drawing
         /// Will add lines on to the spirograph over [time] frames, starting with none and ending with a full spirograph.
         /// </summary>
         /// <param name="time"></param>
-        public void SlowDraw(BasicEffect effect, GraphicsDevice graphics)
+        void slowDraw(Effect effect, GraphicsDevice graphics)
         {
-            int vertsToDraw = (int)((float)lineVertices.Length * ((float)timeSpentForSlowDraw / (float)timeForSlowDraw));
+            float progress = timeSpentForSlowDraw / (float)timeForSlowDraw;
+            if (progress > 1)
+                progress = 1;
+            int vertsToDraw = (int)(lineVertices.Length * progress);
             int[] resizedOrderArray = vertexOrder.Take(vertsToDraw * 2).ToArray();
-            effect.TextureEnabled = false;
-            effect.VertexColorEnabled = true;
-            effect.World = Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(worldPosition);
-            graphics.DrawUserIndexedPrimitives<VertexPositionColor>(PrimitiveType.LineList, lineVertices, 0,
-                                                                vertsToDraw, vertexOrder, 0, vertsToDraw - 1);
-            if (timeSpentForSlowDraw == timeForSlowDraw)
+            ((BasicEffect)effect).TextureEnabled = false;
+            ((BasicEffect)effect).VertexColorEnabled = true;
+            ((BasicEffect)effect).World = Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(worldPosition);
+            graphics.DrawUserIndexedPrimitives(PrimitiveType.LineList, lineVertices, 0, vertsToDraw, vertexOrder, 0, vertsToDraw - 1);
+            if (progress == 1)
             {
                 slowDrawing = false;
                 timeForSlowDraw = 0;
                 timeSpentForSlowDraw = 0;
             }
         }
+
+        public float DepthBias { get { return depthBias; } }
 
         #region IModifiable Members
 
@@ -212,17 +223,7 @@ namespace CommonCode.Drawing
             throw new NotImplementedException();
         }
 
-        public Spirograph ShallowCopy(LoadArgs l)
-        {
-            throw new NotImplementedException();
-        }
-
         public Spirograph DeepCopy()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Spirograph DeepCopy(LoadArgs l)
         {
             throw new NotImplementedException();
         }

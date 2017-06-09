@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Audio;
 
 namespace CommonCode
 {
-    /*public class AudioManager : GameComponent
+    public class AudioManager : GameComponent
     {
         private static Dictionary<string, Cue> cues;
         private static Dictionary<string, SoundEffect> sounds;
@@ -94,5 +94,5 @@ namespace CommonCode
         {
             audioEngine.Update();
         }
-    }*/
+    }
 }

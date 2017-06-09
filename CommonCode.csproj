@@ -45,9 +45,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Collision\AABox.cs" />
+    <Compile Include="Collision\IBoundable.cs" />
     <Compile Include="Collision\ICollidable.cs" />
     <Compile Include="Collision\Convex.cs" />
     <Compile Include="Drawing\2D\Line2D.cs" />
+    <Compile Include="Drawing\IDrawable3D.cs" />
+    <Compile Include="QuadMap.cs" />
     <Compile Include="UI\Button.cs" />
     <Compile Include="UI\Page.cs" />
     <Compile Include="Drawing\2D\Sprite.cs" />
@@ -78,7 +81,7 @@
     <Compile Include="Coordinate.cs" />
     <Compile Include="Drawing\DrawListItem.cs" />
     <Compile Include="GameGlobals.cs" />
-    <Compile Include="Content\DynamicContentManager.cs" />
+    <Compile Include="Managers\DynamicContentManager.cs" />
     <Compile Include="ErrorScreen.cs" />
     <Compile Include="GameSettings.cs" />
     <Compile Include="ICopyable.cs" />

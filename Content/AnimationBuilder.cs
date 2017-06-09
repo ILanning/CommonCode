@@ -1,14 +1,15 @@
-﻿using Microsoft.Xna.Framework;
+﻿using CommonCode.Drawing;
+using Microsoft.Xna.Framework;
 
 namespace CommonCode.Content
 {
-    public struct FrameBuilder
+    /*public struct FrameBuilder
     {
-        public PointBuilder Location;
-        public PointBuilder Source;
+        public Coordinate Location;
+        public Coordinate Source;
         public short Delay;
 
-        public FrameBuilder(Point location, Point source, short delay)
+        public FrameBuilder(Coordinate location, Coordinate source, short delay)
         {
             Location = location;
             Source = source;
@@ -24,21 +25,7 @@ namespace CommonCode.Content
         {
             return new FrameBuilder(a.Location, a.Source, a.Delay);
         }
-    }
-    
-    public struct Frame
-    {
-        public Point Location;
-        public Point Source;
-        public short Delay;
-
-        public Frame(Point location, Point source, short delay)
-        {
-            Location = location;
-            Source = source;
-            Delay = delay;
-        }
-    }
+    }*/
 
     public class AnimationBuilder
     {
@@ -46,8 +33,8 @@ namespace CommonCode.Content
         public bool ShouldLoop;
         public bool TextureFlipped;
         public int FirstFrame;
-        public PointBuilder frameSize;
-        public FrameBuilder[] Frames;
+        public Coordinate frameSize;
+        public Frame[] Frames;
 
         public AnimationBuilder()
         { }
@@ -57,7 +44,7 @@ namespace CommonCode.Content
             TextureImagePath = pathName;
             ShouldLoop = willLoop;
             FirstFrame = startFrame;
-            Frames = new FrameBuilder[newFrames.Length];
+            Frames = new Frame[newFrames.Length];
             for (int i = 0; i < newFrames.Length; i++)
                 Frames[i] = newFrames[i];
             frameSize = SizeOfFrames;

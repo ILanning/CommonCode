@@ -119,7 +119,19 @@ namespace CommonCode.Windows
             if (windowsToAdd.Count > 0)
             {
                 foreach (Window window in windowsToAdd)
-                    windows.Add(window);
+                {
+                    //If this window tries to appear in the same spot as another window, move it slightly
+                    for (int i = 0; i < windows.Count; i++)
+                    {
+                        if (windows[i].Position == window.Position)
+                        {
+                            window.Position += new Coordinate(20, 20);
+                            //Do this until it isn't over anything
+                            i = -1;
+                        }
+                    }
+                    windows.Insert(0, window);
+                }
                 if (windows.Count == 1)
                     windows[0].InFocus = true;
                 windowsToAdd = new List<Window>();

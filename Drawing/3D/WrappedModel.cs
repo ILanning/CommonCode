@@ -37,9 +37,9 @@ namespace CommonCode.Drawing
             }
         }
 
-        public WrappedModel(string filePath, string baseDirectory, ContentManager Content)
+        public WrappedModel(string filePath, ContentManager Content)
         {
-            WrappedModelBuilder builder = WrappedModelBuilder.BuilderRead(filePath, baseDirectory);
+            WrappedModelBuilder builder = WrappedModelBuilder.BuilderRead(filePath);
 
             model = Content.Load<Model>(builder.ModelPath);
             Scale = builder.Scale;
@@ -97,15 +97,15 @@ namespace CommonCode.Drawing
             //}
         }
 
-        public void Draw(BasicEffect effect, GraphicsDevice graphics)
+        public void Draw(Effect effect, GraphicsDevice graphics)
         {
             for (int i = 0; i < model.Meshes.Count; i++)
             {
                 foreach (BasicEffect meshEffect in model.Meshes[i].Effects)
                 {
                     //float scale = 0;
-                    meshEffect.View = effect.View;
-                    meshEffect.Projection = effect.Projection;
+                    meshEffect.View = ((BasicEffect)effect).View;
+                    meshEffect.Projection = ((BasicEffect)effect).Projection;
                     //if (extension == ".X")
                     //    scale = 0.1f;
                     //else

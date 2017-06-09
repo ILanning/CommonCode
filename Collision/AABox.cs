@@ -7,6 +7,7 @@ namespace CommonCode.Collision
     {
         public Coordinate Position { get { return edges.Location; } set { edges.Location = (Point)value; } }
         public Rectangle edges;
+        public Rectangle Bounds { get { return edges; } }
 
         public AABox(Rectangle boundary)
         {

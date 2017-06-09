@@ -4,7 +4,7 @@ using System;
 
 namespace CommonCode.Drawing
 {
-    public class Cube : RenderShape
+    public class Cube : RenderShape, IDrawable3D
     {
         VertexPositionColorTexture[] cubeVertices = new VertexPositionColorTexture[24];
         VertexPositionColor[] frameVertices = new VertexPositionColor[20];
@@ -16,7 +16,9 @@ namespace CommonCode.Drawing
         Color[] faceColors;
         Texture2D[] faceTextures;
 
-        public Cube(Vector3 position, Quaternion rotation, float radius, Color[] faceColors, Texture2D[] faceTextures)
+        public float DepthBias { get; set; }
+
+        public Cube(Vector3 position, Quaternion rotation, float radius, Color[] faceColors = null, Texture2D[] faceTextures = null)
         {
             WorldPosition = position;
             Rotation = rotation;
@@ -168,13 +170,19 @@ namespace CommonCode.Drawing
         public override void Update()
         { }
 
-        public override void Draw(BasicEffect effect, GraphicsDevice graphics)
+        public override void Draw(Effect effect, GraphicsDevice graphics)
+        {
+            if (effect is BasicEffect)
+                draw((BasicEffect)effect, graphics);
+            if (effect is AlphaTestEffect)
+                Draw((AlphaTestEffect)effect, graphics);
+        }
+
+        void draw(BasicEffect effect, GraphicsDevice graphics)
         {
             effect.TextureEnabled = true;
             effect.VertexColorEnabled = true;
-            graphics.RasterizerState = RasterizerState.CullNone;
             effect.World = Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(position);
-            //graphics.RasterizerState.DepthBias += depthBias;
             foreach (EffectPass pass in effect.CurrentTechnique.Passes)
             {
                 effect.Texture = faceTextures[0];
@@ -202,17 +210,54 @@ namespace CommonCode.Drawing
                 graphics.DrawUserIndexedPrimitives<VertexPositionColorTexture>(PrimitiveType.TriangleList,
                            cubeVertices, 0, 4, drawOrder, 30, 2);
             }
-            //graphics.RasterizerState.DepthBias -= depthBias;
         }
 
-        public override void DrawGuidlines(BasicEffect effect, GraphicsDevice graphics)
+        void draw(AlphaTestEffect effect, GraphicsDevice graphics)
         {
-            effect.Texture = null;
-            effect.TextureEnabled = false;
             effect.VertexColorEnabled = true;
-            graphics.RasterizerState = RasterizerState.CullNone;
             effect.World = Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(position);
-            graphics.RasterizerState.DepthBias += depthBias;
+            foreach (EffectPass pass in effect.CurrentTechnique.Passes)
+            {
+                effect.Texture = faceTextures[0];
+                pass.Apply();
+                graphics.DrawUserIndexedPrimitives<VertexPositionColorTexture>(PrimitiveType.TriangleList,
+                           cubeVertices, 0, 4, drawOrder, 0, 2);
+                effect.Texture = faceTextures[1];
+                pass.Apply();
+                graphics.DrawUserIndexedPrimitives<VertexPositionColorTexture>(PrimitiveType.TriangleList,
+                           cubeVertices, 0, 4, drawOrder, 6, 2);
+                effect.Texture = faceTextures[2];
+                pass.Apply();
+                graphics.DrawUserIndexedPrimitives<VertexPositionColorTexture>(PrimitiveType.TriangleList,
+                           cubeVertices, 0, 4, drawOrder, 12, 2);
+                effect.Texture = faceTextures[3];
+                pass.Apply();
+                graphics.DrawUserIndexedPrimitives<VertexPositionColorTexture>(PrimitiveType.TriangleList,
+                           cubeVertices, 0, 4, drawOrder, 18, 2);
+                effect.Texture = faceTextures[4];
+                pass.Apply();
+                graphics.DrawUserIndexedPrimitives<VertexPositionColorTexture>(PrimitiveType.TriangleList,
+                           cubeVertices, 0, 4, drawOrder, 24, 2);
+                effect.Texture = faceTextures[5];
+                pass.Apply();
+                graphics.DrawUserIndexedPrimitives<VertexPositionColorTexture>(PrimitiveType.TriangleList,
+                           cubeVertices, 0, 4, drawOrder, 30, 2);
+            }
+        }
+
+        public override void DrawGuidelines(Effect effect, GraphicsDevice graphics)
+        {
+            if (effect is BasicEffect)
+            {
+                ((BasicEffect)effect).TextureEnabled = false;
+                ((BasicEffect)effect).VertexColorEnabled = true;
+                ((BasicEffect)effect).World = Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(position);
+            }
+            if (effect is AlphaTestEffect)
+            {
+                ((AlphaTestEffect)effect).VertexColorEnabled = true;
+                ((AlphaTestEffect)effect).World = Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(position);
+            }
             foreach (EffectPass pass in effect.CurrentTechnique.Passes)
             {
                 pass.Apply();
@@ -229,7 +274,6 @@ namespace CommonCode.Drawing
                 graphics.DrawUserIndexedPrimitives<VertexPositionColor>(PrimitiveType.LineList,
                            frameVertices, 0, 4, new Int16[] { 12, 16, 13, 17, 14, 18, 15, 19 }, 0, 4);
             }
-            graphics.RasterizerState.DepthBias -= depthBias;
         }
     }
 }

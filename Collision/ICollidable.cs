@@ -2,7 +2,7 @@
 
 namespace CommonCode.Collision
 {
-    public interface ICollidable
+    public interface ICollidable : IBoundable
     {
         Coordinate Position { get; set; }
         bool IsColliding(Vector2 point);

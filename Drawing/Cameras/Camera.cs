@@ -28,7 +28,7 @@ namespace CommonCode
         public abstract void RemakeProjection();
         public abstract void Update();
         public abstract void HandleInput();
-        public abstract void Draw(BasicEffect effect, GraphicsDevice graphics);
+        public abstract void Draw(Effect effect, GraphicsDevice graphics);
 
         #region Properties
 

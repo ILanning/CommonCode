@@ -5,7 +5,7 @@ using System;
 
 namespace CommonCode.Drawing
 {
-    public class TexturedPlane : IModifiable3D, ICopyable<TexturedPlane>
+    public class TexturedPlane : IModifiable3D, ICopyable<TexturedPlane>, IDrawable3D
     {
         Vector3 position;
         Quaternion rotation = Quaternion.Identity; 
@@ -37,7 +37,7 @@ namespace CommonCode.Drawing
 
         public TexturedPlane(string filePath, DynamicContentManager Content)
         {
-            TexturedPlaneBuilder builder = TexturedPlaneBuilder.BuilderRead(filePath, Content.BaseDirectory);
+            TexturedPlaneBuilder builder = TexturedPlaneBuilder.BuilderRead(filePath);
 
             position = builder.Position;
             if (builder.Rotation != new Quaternion(0, 0, 0, 0))
@@ -70,7 +70,7 @@ namespace CommonCode.Drawing
             vertexArray[3] = new VertexPositionColorTexture(new Vector3(-size.X, 0, -size.Y), color, new Vector2(0, 0));
         }
 
-        public void Update()
+        public void Update(GameTime gameTime)
         {
             if (rotation.LengthSquared() > 1.01f || rotation.LengthSquared() < 0.99f)
                 rotation.Normalize();
@@ -89,27 +89,34 @@ namespace CommonCode.Drawing
             }
         }
 
-        public void Draw(BasicEffect effect, GraphicsDevice graphics)
+        public void Draw(Effect effect, GraphicsDevice graphics)
         {
-            effect.Texture = texture;
-            effect.TextureEnabled = true;
-            effect.VertexColorEnabled = true;
-            graphics.RasterizerState = RasterizerState.CullNone;
             Vector3 biasOffset = Vector3.Zero;
             if (billboard)
-            {
                 Billboard();
-                biasOffset = Vector3.Transform(new Vector3(0, -depthBias, 0), rotation);
+            biasOffset = Vector3.Transform(new Vector3(0, -depthBias, 0), rotation);
+            if (effect is BasicEffect)
+            {
+                BasicEffect be = (BasicEffect)effect;
+                be.Texture = texture;
+                be.VertexColorEnabled = true;
+                be.World = Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(position + biasOffset);
+                be.TextureEnabled = true;
             }
-            effect.World = Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(position + biasOffset);
-            graphics.RasterizerState.DepthBias += depthBias;
+            else if (effect is AlphaTestEffect)
+            {
+                AlphaTestEffect ate = (AlphaTestEffect)effect;
+                ate.Texture = texture;
+                ate.VertexColorEnabled = true;
+                ate.World = Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(position + biasOffset);
+            }
+
             foreach (EffectPass pass in effect.CurrentTechnique.Passes)
             {
                 pass.Apply();
                 graphics.DrawUserIndexedPrimitives<VertexPositionColorTexture>(PrimitiveType.TriangleStrip,
                     vertexArray, 0, 4, new int[] { 0, 1, 2, 3, 1, 2 }, 0, 2);
             }
-            graphics.RasterizerState.DepthBias -= depthBias;
         }
 
         public void Billboard()
@@ -153,9 +160,10 @@ namespace CommonCode.Drawing
                     vertexArray[i].Color = color;
             }
         }
+        public float DepthBias { get { return depthBias; } set { depthBias = value; } }
 
         #endregion
-        
+
         #region IModifiable3D Members
 
         IModifier3D[] modifiers = new IModifier3D[4];

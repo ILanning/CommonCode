@@ -4,13 +4,9 @@ namespace CommonCode
 {
     public abstract class Screen
     {
-        public Screen(ScreenManager manager)
-        {
-            screenManager = manager;
-        }
+        public Screen() { }
 
         public bool isHidden;
-        public ScreenManager screenManager;
         public bool DrawCoveredScreens = false;
         public bool UpdateCoveredScreens = false;
         public bool isContentLoaded = false;
@@ -25,17 +21,17 @@ namespace CommonCode
 
         public virtual void LoadContent() { isContentLoaded = true; }
 
-        public virtual void UnloadContent() {}
+        public virtual void HandleInput(GameTime gameTime) { }
+
+        public virtual void Update(GameTime gameTime) { }
 
         public virtual void Draw(GameTime gameTime) { }
 
-        public virtual void Update(GameTime gameTime) {}
-
-        public virtual void HandleInput() {}
+        public virtual void UnloadContent() { }
 
         public virtual void RemoveSelf()
         {
-            screenManager.DeleteScreen(this);
+            ScreenManager.DeleteScreen(this);
         }
     }
 }

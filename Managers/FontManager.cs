@@ -27,5 +27,6 @@ namespace CommonCode
             //else
             //    throw new ArgumentException("The key '" + fontName + "' already exists in this FontManager.", "fontName");
         }
+        //TODO: Consider adding ShortenText and WordWrapText functions
     }
 }

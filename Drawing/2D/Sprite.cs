@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace CommonCode
+namespace CommonCode.Drawing
 {
     public class Sprite : IModifiable2D
     {
@@ -63,7 +63,13 @@ namespace CommonCode
             sb.Draw(texture, screenPosition + positionOffset + Origin, textureSource, color, rotation, Origin, scale, SpriteEffects.None, 0);
         }
 
-        #region IModifiable2D Members
+        public virtual void Draw(SpriteBatch sb, Vector2 customOffset)
+        {
+            sb.Draw(texture, screenPosition + positionOffset + customOffset + Origin, textureSource, color, rotation, Origin, scale, SpriteEffects.None, 0);
+        }
+
+        #region IModifiable2D Members        
+        public IModifier2D[] Modifiers { get { return modifiers; } }
 
         public void AddModifier(IModifier2D modifier)
         {
@@ -92,7 +98,7 @@ namespace CommonCode
         {
             modifiers = new IModifier2D[4];
         }
-
+        
         #endregion
 
         #region Properties
@@ -107,7 +113,7 @@ namespace CommonCode
 
         public virtual Color Color { get { return color; } set { color = value; } }
 
-        public IModifier2D[] Modifiers { get { return modifiers; } }
+        //public IModifier2D[] Modifiers { get { return modifiers; } }
 
         #endregion
     }

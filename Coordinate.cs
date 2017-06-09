@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using System.Xml.Serialization;
 
 namespace CommonCode
 {
@@ -7,7 +8,9 @@ namespace CommonCode
     /// </summary>
     public struct Coordinate
     {
+        [XmlAttribute]
         public int X;
+        [XmlAttribute]
         public int Y;
 
         public Coordinate(int value)

@@ -5,9 +5,11 @@ namespace CommonCode.Collision
 {
     public class Convex : ICollidable
     {
-        public Vector2[] points;
+        Vector2[] points;
         public Coordinate Position { get; set; }
-        public Rectangle simpleCollision;
+        public Rectangle Bounds { get { return simpleCollision; } }
+
+        Rectangle simpleCollision;
 
         public Convex(Vector2[] boundary) : this(boundary, Coordinate.Zero) { }
 
@@ -164,19 +166,5 @@ namespace CommonCode.Collision
                 sum += results[j];
             return sum / results.Length;
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
 }

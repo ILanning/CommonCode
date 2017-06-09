@@ -9,7 +9,7 @@ namespace CommonCode.Content
     /// <typeparam name="T">Type of the child class.</typeparam>
     public abstract class Builder<T> where T : Builder<T>
     {
-        static public T BuilderRead(string filePath, string RootDirectory)
+        static public T BuilderRead(string filePath)
         {
             T newObject;
             XmlSerializer xmlSerializer = new XmlSerializer(typeof(T));
@@ -19,15 +19,12 @@ namespace CommonCode.Content
             return newObject;
         }
 
-        static public string Create(object toBeSerialized, string filePath, string RootDirectory)
+        static public void Create(object toBeSerialized, string filePath)
         {
-            XmlSerializer xmlSerializer = new XmlSerializer(toBeSerialized.GetType());
-
-            string newFilePath = Path.Combine(RootDirectory, filePath);
-            StreamWriter streamWriter = new StreamWriter(File.Create(newFilePath));
+            XmlSerializer xmlSerializer = new XmlSerializer(toBeSerialized.GetType());            
+            StreamWriter streamWriter = new StreamWriter(File.Create(filePath));
             xmlSerializer.Serialize(streamWriter, toBeSerialized);
             streamWriter.Close();
-            return newFilePath;
         }
     }
 }

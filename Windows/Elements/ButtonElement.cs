@@ -57,11 +57,12 @@ namespace CommonCode.Windows
         {
             //Buttons do not change in size or shape
             //Reconsider this if collidables are made to be able to stretch
-            Rectangle resultArea = Rectangle.Empty;
+            Rectangle resultArea = new Rectangle();
             resultArea.Width = size.X;
             resultArea.Height = size.Y;
-            resultArea.Location = (Point)SideStick(targetSpace, resultArea);
-            internalButton.Position = resultArea.Location;
+            Coordinate pos = SideStick(targetSpace, resultArea);
+            resultArea.Location = (Point)pos;
+            internalButton.Position = pos;
             targetArea = resultArea;
         }
 

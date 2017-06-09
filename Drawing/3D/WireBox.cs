@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 
 namespace CommonCode.Drawing
 {
@@ -35,13 +36,16 @@ namespace CommonCode.Drawing
                             new VertexPositionColor(new Vector3(-size.X, -size.Y, -size.Z), color)};
         }
 
-        public void Draw(BasicEffect effect, GraphicsDevice graphics)
+        public void Draw(Effect effect, GraphicsDevice graphics)
         {
-            effect.TextureEnabled = false;
-            effect.VertexColorEnabled = true;
-            effect.World = Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(position);
-            graphics.DrawUserIndexedPrimitives<VertexPositionColor>(PrimitiveType.LineList,
-                       lineVertexArray, 0, 8, vertexOrderArray, 0, 12);
+            if (effect is BasicEffect)
+            {
+                ((BasicEffect)effect).TextureEnabled = false;
+                ((BasicEffect)effect).VertexColorEnabled = true;
+                ((BasicEffect)effect).World = Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(position);
+                graphics.DrawUserIndexedPrimitives<VertexPositionColor>(PrimitiveType.LineList,
+                           lineVertexArray, 0, 8, vertexOrderArray, 0, 12);
+            }
         }
 
         #region IModifiable3D Members

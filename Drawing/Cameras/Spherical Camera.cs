@@ -118,25 +118,36 @@ namespace CommonCode
         {
             if (!Immobile && !InputIndependent)
             {
-                Vector3 cameraDirection = new Vector3(CameraPosition.X - LookAtPosition.X, 0, CameraPosition.Z - LookAtPosition.Z);
-                cameraDirection.Normalize();
-                Vector3 rightNormal = Vector3.Cross(cameraDirection, Vector3.Up);
-                rightNormal.Normalize();
                 Vector3 movementVector = Vector3.Zero;
 
-                if ((InputManager.IsKeyDown(Keys.Down) && !InputManager.IsKeyDown(Keys.Up)) && directionalMomentum.LengthSquared() < 0.01f * (zoomLevel * zoomLevel) / 2)
-                    movementVector += cameraDirection;
-                else if ((InputManager.IsKeyDown(Keys.Up) && !InputManager.IsKeyDown(Keys.Down)) && directionalMomentum.LengthSquared() < 0.01f * (zoomLevel * zoomLevel) / 2)
-                    movementVector -= cameraDirection;
-                if (InputManager.IsKeyDown(Keys.Left) && !InputManager.IsKeyDown(Keys.Right) && directionalMomentum.LengthSquared() < 0.01f * (zoomLevel * zoomLevel) / 2)
-                    movementVector += rightNormal;
-                else if (InputManager.IsKeyDown(Keys.Right) && !InputManager.IsKeyDown(Keys.Left) && directionalMomentum.LengthSquared() < 0.01f * (zoomLevel * zoomLevel) / 2)
-                    movementVector -= rightNormal;
-                if (InputManager.IsKeyDown(Keys.PageUp) && !InputManager.IsKeyDown(Keys.PageDown) && directionalMomentum.LengthSquared() < 0.01f * (zoomLevel * zoomLevel) / 2)
-                    movementVector.Y++;
-                else if (InputManager.IsKeyDown(Keys.PageDown) && !InputManager.IsKeyDown(Keys.PageUp) && directionalMomentum.LengthSquared() < 0.01f * (zoomLevel * zoomLevel) / 2)
-                    movementVector.Y--;
+                //TODO: Figure out why I wrote this this way 4 years ago.  Some sort of speed check?
+                //Speed is related to the camera's zoom level.  This prevents the camera from exceeding the 
+                if (directionalMomentum.LengthSquared() < 0.01f * (zoomLevel * zoomLevel) / 2)
+                {
+                    Vector3 cameraDirection = new Vector3(CameraPosition.X - LookAtPosition.X, 0, CameraPosition.Z - LookAtPosition.Z);
+                    cameraDirection.Normalize();
+                    Vector3 rightNormal = Vector3.Cross(cameraDirection, Vector3.Up);
+                    rightNormal.Normalize();
 
+                    if (InputManager.IsKeyDown(Keys.Down) || InputManager.IsKeyDown(Keys.S))
+                        movementVector += cameraDirection;
+                    if (InputManager.IsKeyDown(Keys.Up) || InputManager.IsKeyDown(Keys.W))
+                        movementVector -= cameraDirection;
+                    if (InputManager.IsKeyDown(Keys.Left) || InputManager.IsKeyDown(Keys.A))
+                        movementVector += rightNormal;
+                    if (InputManager.IsKeyDown(Keys.Right) || InputManager.IsKeyDown(Keys.D))
+                        movementVector -= rightNormal;
+                    if (InputManager.IsKeyDown(Keys.PageUp) || InputManager.IsKeyDown(Keys.Q))
+                        movementVector.Y++;
+                    if (InputManager.IsKeyDown(Keys.PageDown) || InputManager.IsKeyDown(Keys.E))
+                        movementVector.Y--;
+
+                    if (movementVector != Vector3.Zero)
+                    {
+                        movementVector.Normalize();
+                        directionalMomentum += movementVector * 0.01f * (zoomLevel / 2);
+                    }
+                }
                 Movement = movementVector;
 
                 if (InputManager.HasScrolledDown)
@@ -157,20 +168,15 @@ namespace CommonCode
                         angularMomentum.Y += InputManager.MouseMovement.Y / 10;
                     angularMomentum.X -= InputManager.MouseMovement.X / 10;
                 }
-
-                if (movementVector != Vector3.Zero)
-                {
-                    movementVector.Normalize();
-                    directionalMomentum += movementVector * 0.01f * (zoomLevel/2);
-                }
             }
         }
 
-        public override void Draw(BasicEffect effect, GraphicsDevice graphics)
+        public override void Draw(Effect effect, GraphicsDevice graphics)
         {
-            effect.TextureEnabled = false;
-            effect.VertexColorEnabled = true;
-            //effect.CommitChanges();
+            if (!(effect is BasicEffect))
+                throw new ArgumentException("effect", "Cameras only support the BasicEffect");
+            ((BasicEffect)effect).TextureEnabled = false;
+            ((BasicEffect)effect).VertexColorEnabled = true;
             DrawBox(lookAtPosition, 0.1f, Color.White, graphics);
         }
 
@@ -193,7 +199,7 @@ namespace CommonCode
 
         #region IModifiable3D Members
 
-        public override Vector3 WorldPosition { get { return CameraPosition; } set { CameraPosition = value; } }
+        public override Vector3 WorldPosition { get { return lookAtPosition; } set { lookAtPosition = value; } }
         public override Quaternion Rotation
         {
             get

@@ -9,7 +9,7 @@ namespace CommonCode
     {
         StringPositionColor[] errors;
 
-        public ErrorScreen(string[] errorMessages, ScreenManager manager) : base(manager)
+        public ErrorScreen(string[] errorMessages) : base()
         {
             if(!ScreenManager.Globals.Fonts.FontLibrary.ContainsKey("Error"))
                 ScreenManager.Globals.Fonts.AddFont("Error", ".//Fonts//ErrorFont.spritefont");
@@ -47,7 +47,7 @@ namespace CommonCode
             errors = tempLineList.ToArray();
         }
 
-        public override void HandleInput()
+        public override void HandleInput(GameTime gameTime)
         {
             if (InputManager.IsKeyTriggered(Keys.Escape))
                 RemoveSelf();

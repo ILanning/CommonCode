@@ -50,7 +50,7 @@ namespace CommonCode.UI
             //Gather some useful values
             barWidth = spriteSheet.Width;
             int copyArea = barWidth * barWidth;
-            int backingSize = windowLength - barWidth * 2;
+            backingSize = windowLength - barWidth * 2;
             int backingArea = backingSize * barWidth;
 
             if (windowLength < barWidth * 3)
@@ -66,6 +66,7 @@ namespace CommonCode.UI
 
             if (this.windowLength != windowLength)
             {
+                //Build out pixel arrays containing the buttons from the scroll bar's base texture
                 Color[] scrollUp = new Color[copyArea], backing = new Color[copyArea], scrollDown = new Color[copyArea];
                 for (int i = 0; i < copyArea; i++)
                     scrollUp[i] = spriteSheetColors[i];
@@ -91,6 +92,8 @@ namespace CommonCode.UI
                 //    finalBacking[i + copyArea] = backing[i % copyArea];
                 for (int i = 0; i < copyArea; i++)//Add last button to final texture
                     finalBacking[i + copyArea + backingArea] = scrollDown[i];
+                if (texture != null)
+                    texture.Dispose();
                 texture = new Texture2D(ScreenManager.Globals.Graphics, barWidth, windowLength);
                 texture.SetData<Color>(finalBacking);
             }
@@ -133,14 +136,14 @@ namespace CommonCode.UI
                 sliderTexture.SetData<Color>(finalSlider);
             }
             //Set up buttons
-            scrollUpButton = new Button(new AABox(new Rectangle(0, 0, barWidth, barWidth)), Coordinate.Zero, true);
+            scrollUpButton = new Button(new AABox(new Rectangle(0, 0, barWidth, barWidth)), position: position);
             scrollUpButton.Clicked += onScrollUp;
-            backingButton = new Button(new AABox(new Rectangle(0, barWidth, barWidth, backingSize)), Coordinate.Zero, true);
+            backingButton = new Button(new AABox(new Rectangle(0, barWidth, barWidth, backingSize)), position: new Coordinate(0, barWidth));
             backingButton.Clicked += onPressBacking;
             Rectangle sliderBox = new Rectangle(0, 0, sliderTexture.Width, sliderTexture.Height);
-            sliderButton = new Button(sliderTexture, new Rectangle[] { sliderBox, sliderBox, sliderBox, sliderBox }, new AABox(sliderBox), Coordinate.Zero, true);
+            sliderButton = new Button(new AABox(sliderBox), sliderTexture, new Rectangle[] { sliderBox, sliderBox, sliderBox, sliderBox }, new Coordinate());
             sliderButton.Clicked += onDragSlider;
-            scrollDownButton = new Button(new AABox(new Rectangle(0, barWidth + backingSize, barWidth, barWidth)), Coordinate.Zero, true);
+            scrollDownButton = new Button(new AABox(new Rectangle(0, barWidth + backingSize, barWidth, barWidth)), position: new Coordinate(0, windowLength - barWidth));
             scrollDownButton.Clicked += onScrollDown;
             prevValue = backingSize;
             buttonSize = barWidth;
@@ -168,7 +171,7 @@ namespace CommonCode.UI
         void centerSlider()
         {
             float controlledToBar = (float)backingSize / controlledAreaLength;
-            sliderButton.Position = new Coordinate(sliderButton.Position.X, (int)(controlledAreaPos * controlledToBar));
+            sliderButton.Position = new Coordinate(0, (int)(controlledAreaPos * controlledToBar) + buttonSize) + position;
         }
 
         void onDragSlider(object sender, EventArgs e)
@@ -224,6 +227,7 @@ namespace CommonCode.UI
 
         public void Draw(SpriteBatch sb)
         {
+            sb.Draw(texture, position, color);
             sliderButton.Draw(sb);
         }
 
@@ -253,7 +257,7 @@ namespace CommonCode.UI
                 Coordinate diff = value - position;
                 scrollUpButton.Position = scrollUpButton.Position + diff;
                 scrollDownButton.Position = scrollDownButton.Position + diff;
-                sliderButton.Position = sliderButton.Position + diff + new Coordinate(0, barWidth);
+                sliderButton.Position = sliderButton.Position + diff;// + new Coordinate(0, barWidth);
                 backingButton.Position = backingButton.Position + diff;
                 position = value;
             }

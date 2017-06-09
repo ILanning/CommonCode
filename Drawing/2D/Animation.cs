@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.Xml.Serialization;
 
 namespace CommonCode.Drawing
 {
@@ -8,10 +9,11 @@ namespace CommonCode.Drawing
         public Vector2 Position;
         bool paused = false;
         public bool Paused 
-        { 
+        {
             get { return paused; }
-            set 
-            { 
+            set
+            {
+                
                 paused = value;
                 timeToNextFrame = frames[currentFrame].Length;
             }
@@ -79,15 +81,25 @@ namespace CommonCode.Drawing
             }
         }
 
-        public void Draw(SpriteBatch sb) { sb.Draw(texture, Position, frames[currentFrame].Dimensions, Color.White); }
+        public void Draw(SpriteBatch sb)
+        {
+            sb.Draw(texture, Position, frames[currentFrame].Dimensions, Color.White);
+        }
+
+        public void Draw(SpriteBatch sb, Vector2 offset)
+        {
+            sb.Draw(texture, Position + offset, frames[currentFrame].Dimensions, Color.White);
+        }
     }
 
     public struct Frame
     {
+        [XmlAttribute]
         /// <summary>
         /// Location and size of the region of the texture that will be drawn for this frame.
         /// </summary>
         public Rectangle Dimensions;
+        [XmlAttribute]
         /// <summary>
         /// Length of time that this frame will last, in milliseconds.
         /// </summary>

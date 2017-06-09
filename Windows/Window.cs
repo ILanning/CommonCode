@@ -1,4 +1,5 @@
-﻿using CommonCode.UI;
+﻿using CommonCode.Collision;
+using CommonCode.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -94,7 +95,7 @@ namespace CommonCode.Windows
             mainContainer = (Element)layout;
             this.borderColors = borderColors;
             if(uiComponents == null)
-                uiComponents = content.Load<Texture2D>(".//Content//UI Elements.png");
+                uiComponents = content.Load<Texture2D>(".//UI//UI Elements.png");
             Title = title;
             TopPad = 2;
             BotPad = 2;
@@ -109,9 +110,9 @@ namespace CommonCode.Windows
             }
             if (closable)
             {
-                closeButton = new Button(uiComponents, new Rectangle[] { new Rectangle(13, 0, 13, 13), 
-                new Rectangle(13, 0, 13, 13), new Rectangle(13, 0, 13, 13), new Rectangle(13, 0, 13, 13) },
-                    new CommonCode.Collision.AABox(new Rectangle(0, 0, 13, 13)), new Coordinate(0, 0), true);
+                closeButton = new Button(new AABox(new Rectangle(0, 0, 13, 13)), uiComponents, 
+                    new Rectangle[] { new Rectangle(13, 0, 13, 13), new Rectangle(13, 0, 13, 13), new Rectangle(13, 0, 13, 13), new Rectangle(13, 0, 13, 13) },
+                     new Coordinate(0, 0));
                 closeButton.Released += CloseWindow;
             }
 
@@ -281,7 +282,7 @@ namespace CommonCode.Windows
             mainContainer.Draw(sb);
             if (closeButton != null)
             {
-                sb.Draw(pixel, new Rectangle(closeButton.Position.X, closeButton.Position.Y, 13, 13), borderColors[(int)state]);
+                sb.Draw(pixel, new Rectangle((int)closeButton.Position.X, (int)closeButton.Position.Y, 13, 13), borderColors[(int)state]);
                 closeButton.Draw(sb);
             }
             //Borders

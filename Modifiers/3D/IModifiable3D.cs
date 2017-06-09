@@ -16,6 +16,6 @@ namespace CommonCode
         IModifier3D[] Modifiers { get; }
         void AddModifier(IModifier3D modifier);
         void ClearModifiers();
-        void Draw(BasicEffect effect, GraphicsDevice graphics);
+        void Draw(Effect effect, GraphicsDevice graphics);
     }
 }
