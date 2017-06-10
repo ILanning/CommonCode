@@ -55,7 +55,7 @@
     <Compile Include="UI\Page.cs" />
     <Compile Include="Drawing\2D\Sprite.cs" />
     <Compile Include="UI\StringPositionColor.cs" />
-    <Compile Include="To be merged - updated\TextBox.cs" />
+    <Compile Include="UI\TextBox.cs" />
     <Compile Include="UI\TextItem.cs" />
     <Compile Include="UI\IClickable.cs" />
     <Compile Include="UI\ScrollBar.cs" />
@@ -106,7 +106,6 @@
     <Compile Include="Modifiers\3D\RotateModifiers3D.cs" />
     <Compile Include="Modifiers\3D\ScaleModifiers3D.cs" />
     <Compile Include="Modifiers\3D\SpirographModifiers.cs" />
-    <Compile Include="To be merged - updated\ResizingBox.cs" />
     <Compile Include="Screen.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Windows\Containers\IContainer.cs" />

@@ -8,6 +8,7 @@ namespace CommonCode.UI
     public class ScrollBar
     {
         public static Texture2D spriteSheet;
+        const int scrollAmount = 6;
 
         int controlledAreaLength = 0;
         int windowLength = 0;
@@ -21,6 +22,8 @@ namespace CommonCode.UI
         Coordinate position;
         Texture2D texture;
         Color color;
+        Color disabledColor;
+        bool enabled;
 
         public static void Initialize(Texture2D baseTexture)
         {
@@ -34,12 +37,26 @@ namespace CommonCode.UI
         /// <param name="windowLength">The length of the visible part of the scrollable area, and the length of the scroll bar itself.</param>
         /// <param name="initialPosition">The initial position in the scrollable area.</param>
         /// <param name="position">The position on the screen of the scroll bar itself.</param>
-        public ScrollBar(int controlledAreaLength, int windowLength, int initialPosition, Coordinate position)
+        public ScrollBar(int controlledAreaLength, int windowLength, Coordinate? position = null, int initialPosition = 0, bool enabled = true, Color? color = null, Color? disabledColor = null)
         {
             controlledAreaPos = initialPosition;
-            this.position = position;
+            if (position != null)
+                this.position = (Coordinate)position;
+            else
+                this.position = Coordinate.Zero;
             Resize(controlledAreaLength, windowLength);
-            Color = Color.White;
+
+            if (color != null)
+                this.color = (Color)color;
+            else
+                this.color = Color.White;
+
+            if (disabledColor != null)
+                this.disabledColor = (Color)disabledColor;
+            else
+                this.disabledColor = new Color(this.color.R / 2, this.color.G / 2, this.color.B / 2, this.color.A);
+
+            Enabled = enabled;
         }
 
         //Call this when the bar or controlled area get resized
@@ -47,6 +64,10 @@ namespace CommonCode.UI
         {
             if (this.windowLength == windowLength && this.controlledAreaLength == controlledAreaLength)
                 return;
+
+            controlledAreaPos = 0;
+            this.controlledAreaLength = controlledAreaLength;
+
             //Gather some useful values
             barWidth = spriteSheet.Width;
             int copyArea = barWidth * barWidth;
@@ -97,6 +118,7 @@ namespace CommonCode.UI
                 texture = new Texture2D(ScreenManager.Globals.Graphics, barWidth, windowLength);
                 texture.SetData<Color>(finalBacking);
             }
+            this.windowLength = windowLength;
 
             //Generate the scrolling bar's texture
             Texture2D sliderTexture;
@@ -116,6 +138,7 @@ namespace CommonCode.UI
                     emptySpace[i] = scrollBarButton[i + 2 * barWidth];
                 int arrayPos = 0;
                 int nextArrayPos = 2 * barWidth;
+                //The amount of unused space left in the bar
                 int emptyLength = sliderSize - 17;
 
                 for (; arrayPos < nextArrayPos; arrayPos++)
@@ -137,27 +160,22 @@ namespace CommonCode.UI
             }
             //Set up buttons
             scrollUpButton = new Button(new AABox(new Rectangle(0, 0, barWidth, barWidth)), position: position);
-            scrollUpButton.Clicked += onScrollUp;
-            backingButton = new Button(new AABox(new Rectangle(0, barWidth, barWidth, backingSize)), position: new Coordinate(0, barWidth));
-            backingButton.Clicked += onPressBacking;
+            scrollUpButton.Held += onScrollUp;
+            backingButton = new Button(new AABox(new Rectangle(0, barWidth, barWidth, backingSize)), position: new Coordinate(0, barWidth) + position);
+            backingButton.Held += onPressBacking;
             Rectangle sliderBox = new Rectangle(0, 0, sliderTexture.Width, sliderTexture.Height);
-            sliderButton = new Button(new AABox(sliderBox), sliderTexture, new Rectangle[] { sliderBox, sliderBox, sliderBox, sliderBox }, new Coordinate());
-            sliderButton.Clicked += onDragSlider;
-            scrollDownButton = new Button(new AABox(new Rectangle(0, barWidth + backingSize, barWidth, barWidth)), position: new Coordinate(0, windowLength - barWidth));
-            scrollDownButton.Clicked += onScrollDown;
+            sliderButton = new Button(new AABox(sliderBox), sliderTexture, new Rectangle[] { sliderBox, sliderBox, sliderBox, sliderBox }, color: (enabled ? color : disabledColor));
+            scrollDownButton = new Button(new AABox(new Rectangle(0, barWidth + backingSize, barWidth, barWidth)), position: new Coordinate(0, windowLength - barWidth) + position);
+            scrollDownButton.Held += onScrollDown;
             prevValue = backingSize;
             buttonSize = barWidth;
             sliderSize = sliderTexture.Height;
 
-            this.controlledAreaLength = controlledAreaLength;
-            this.windowLength = windowLength;
             centerSlider();
-            Position = position;
         }
 
         void onPressBacking(object sender, EventArgs e)
         {
-            //teleport to mousePos - (barLength/2)
             float mousePosOnBar = InputManager.MousePosition.Y - (Position.Y + buttonSize) - sliderSize / 2f;
             float barToControlled = controlledAreaLength / (float)backingSize;
             controlledAreaPos = (int)(mousePosOnBar * barToControlled);
@@ -174,29 +192,9 @@ namespace CommonCode.UI
             sliderButton.Position = new Coordinate(0, (int)(controlledAreaPos * controlledToBar) + buttonSize) + position;
         }
 
-        void onDragSlider(object sender, EventArgs e)
-        {
-            if (sliderButton.IsHeld)
-            {
-                sliderButton.Position -= new Coordinate(0, (int)InputManager.MouseMovement.Y);
-                float barToControlled = controlledAreaLength / (float)backingSize;
-                controlledAreaPos = (int)Math.Round(sliderButton.Position.Y * barToControlled);
-                if (controlledAreaPos < 0)
-                {
-                    controlledAreaPos = 0;
-                    sliderButton.Position = Coordinate.Zero;
-                }
-                else if (controlledAreaPos > controlledAreaLength - windowLength || sliderButton.Position.Y >= backingSize - sliderSize)
-                {
-                    controlledAreaPos = controlledAreaLength - windowLength;
-                    sliderButton.Position = new Coordinate(0, backingSize - sliderSize);
-                }
-            }
-        }
-
         void onScrollUp(object sender, EventArgs e)
         {
-            controlledAreaPos -= 3;
+            controlledAreaPos -= scrollAmount;
             if (controlledAreaPos < 0)
                 controlledAreaPos = 0;
             centerSlider();
@@ -204,7 +202,7 @@ namespace CommonCode.UI
 
         void onScrollDown(object sender, EventArgs e)
         {
-            controlledAreaPos += 3;
+            controlledAreaPos += scrollAmount;
             if (controlledAreaPos > controlledAreaLength - windowLength)
                 controlledAreaPos = controlledAreaLength - windowLength;
             centerSlider();
@@ -212,22 +210,25 @@ namespace CommonCode.UI
 
         public void HandleInput()
         {
-            scrollUpButton.HandleInput();
-            scrollDownButton.HandleInput();
-            if (InputManager.HasScrolledUp)
-                for (int i = 0; i < InputManager.ScrollWheelDistance() / 10; i++)
-                    onScrollUp(null, new EventArgs());
-            if (InputManager.HasScrolledDown)
-                for (int i = 0; i > InputManager.ScrollWheelDistance() / 10; i--)
-                    onScrollDown(null, new EventArgs());
-            sliderButton.HandleInput();
-            if (!sliderButton.IsHeld)
+            if (enabled)
+            {
+                scrollUpButton.HandleInput();
+                scrollDownButton.HandleInput();
+                if (InputManager.HasScrolledUp)
+                    for (int i = 0; i < InputManager.ScrollWheelDistance() / 5; i++)
+                        onScrollUp(null, new EventArgs());
+                if (InputManager.HasScrolledDown)
+                    for (int i = 0; i > InputManager.ScrollWheelDistance() / 5; i--)
+                        onScrollDown(null, new EventArgs());
+                sliderButton.HandleInput();
                 backingButton.HandleInput();
+            }
         }
 
         public void Draw(SpriteBatch sb)
         {
-            sb.Draw(texture, position, color);
+            sb.Draw(texture, position, enabled ? color : disabledColor);
+
             sliderButton.Draw(sb);
         }
 
@@ -247,6 +248,16 @@ namespace CommonCode.UI
             }
         }
 
+        public int ControlledArea
+        {
+            get { return controlledAreaLength; }
+            set
+            {
+                if (controlledAreaLength != value)
+                    Resize(value, windowLength);
+            }
+        }
+
         public int Width { get { return barWidth; } }
 
         public Coordinate Position
@@ -257,7 +268,7 @@ namespace CommonCode.UI
                 Coordinate diff = value - position;
                 scrollUpButton.Position = scrollUpButton.Position + diff;
                 scrollDownButton.Position = scrollDownButton.Position + diff;
-                sliderButton.Position = sliderButton.Position + diff;// + new Coordinate(0, barWidth);
+                sliderButton.Position = sliderButton.Position + diff;
                 backingButton.Position = backingButton.Position + diff;
                 position = value;
             }
@@ -269,7 +280,29 @@ namespace CommonCode.UI
             set
             {
                 color = value;
-                //sliderButton.Color = value;
+                if (enabled)
+                    sliderButton.Color = color;
+            }
+        }
+
+        public Color DisabledColor
+        {
+            get { return disabledColor; }
+            set
+            {
+                disabledColor = color;
+                if (!enabled)
+                    sliderButton.Color = disabledColor;
+            }
+        }
+
+        public bool Enabled
+        {
+            get { return enabled; }
+            set
+            {
+                enabled = value;
+                sliderButton.Color = enabled ? color : disabledColor;
             }
         }
         #endregion
