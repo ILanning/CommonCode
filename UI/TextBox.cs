@@ -10,58 +10,74 @@ namespace CommonCode.UI
     /// </summary>
     public class TextBox : IModifiable2D, IClickable
     {
-        private Vector2 screenPosition;
-        private Vector2 positionOffset;
-        private float rotation;
-        private Vector2 dimensions;
-        private Color color;
-        private IModifier2D[] modifiers = new IModifier2D[4];
-        private string text;
-        private string font;
-        private StringPositionColor[] lines;
-        private bool scrollBarUsable;
-        private ScrollBar scrollBar;
+        Vector2 screenPosition;
+        Vector2 positionOffset;
+        float rotation;
+        Coordinate dimensions;
+        Color color;
+        IModifier2D[] modifiers = new IModifier2D[4];
+        string text;
+        string font;
+        StringPositionColor[] lines;
+        ScrollBar scrollBar;
+        Coordinate scrollBarOffset;
+        Rectangle padding;
 
         public bool IsSelected;
         public event EventHandler Selected;
         public event EventHandler Clicked;
         public event EventHandler Collided;
 
-        public TextBox(string text, Rectangle dimensions, string spriteFont, Color? color = null, Rectangle? scrollBarDimensions = null)
+        /// <summary>
+        /// Creates a new text box.
+        /// </summary>
+        /// <param name="text">The initial text in the text box.</param>
+        /// <param name="dimensions">The dimensions of the text box.</param>
+        /// <param name="spriteFont">The font for all text within the box.</param>
+        /// <param name="padding">The padding to apply to the text.  The scroll bar lies outside of the padding, but within the dimensions.</param>
+        /// <param name="color">The text box</param>
+        /// <param name="scrollBarDimensions"></param>
+        public TextBox(string text, Rectangle dimensions, string spriteFont, Rectangle? padding = null, Color? color = null, 
+            Color? scrollBarColor = null, Color? scrollBarDisabledColor = null, Rectangle? scrollBarDimensions = null)
         {
             if (color == null)
                 this.color = Color.White;
             else
                 this.color = (Color)color;
+
+            if (padding != null)
+                this.padding = (Rectangle)padding;
+            else
+                this.padding = new Rectangle(0, 0, 0, 0);
+
             this.text = text;
             font = spriteFont;
-            screenPosition = new Vector2(dimensions.X, dimensions.Y);
             Rectangle scrollDim;
             if (scrollBarDimensions != null)
+            {
                 scrollDim = (Rectangle)scrollBarDimensions;
+                scrollBarOffset = new Coordinate(scrollDim.X, scrollDim.Y);
+            }
             else
-                scrollDim = new Rectangle(dimensions.X + dimensions.Width - (int)(ScrollBar.spriteSheet.Width * 0.5f), dimensions.Y - (int)(ScrollBar.spriteSheet.Width * 0.5f), ScrollBar.spriteSheet.Width - 2, dimensions.Height);
-            this.dimensions = new Vector2(dimensions.Width - scrollDim.Width, dimensions.Height);
-            lines = WordWrap(this.dimensions, text, font, this.color);
+            {
+                scrollDim = new Rectangle(0, 0, ScrollBar.spriteSheet.Width, dimensions.Height);
+                scrollBarOffset = new Coordinate(dimensions.Width - ScrollBar.spriteSheet.Width, 0);
+            }
+            this.dimensions = new Coordinate(dimensions.Width - scrollDim.Width, dimensions.Height);
+            
+            lines = wordWrap(new Vector2(this.dimensions.X - this.padding.Right, this.dimensions.Y - this.padding.Bottom), text, font, this.color);
             if (lines.Length * 20 + 5 > dimensions.Height) //If the text is long enough that a scroll bar is needed
-            {
-                scrollBarUsable = true;
-                scrollBar = new ScrollBar(lines.Length * 20 + 5, scrollDim.Height, 0, new Coordinate(scrollDim.X, scrollDim.Y));
-                scrollBar.Color = this.color;
-            }
+                scrollBar = new ScrollBar(lines.Length * 20 + 5, scrollDim.Height, new Coordinate(scrollDim.X, scrollDim.Y), 0, true, scrollBarColor, scrollBarDisabledColor);
             else
-            {
-                scrollBarUsable = false;
-                scrollBar = new ScrollBar(dimensions.Height + 1, scrollDim.Height, 0, new Coordinate(scrollDim.X, scrollDim.Y));
-                scrollBar.Color = new Color(this.color.R / 2, this.color.G / 2, this.color.B / 2, this.color.A);
-            }
+                scrollBar = new ScrollBar(scrollDim.Height, scrollDim.Height, new Coordinate(scrollDim.X, scrollDim.Y), 0, false, scrollBarColor, scrollBarDisabledColor);
+
+            WorldPosition = new Vector2(dimensions.X, dimensions.Y);
         }
 
         public virtual void HandleInput()
         {
             OnClicked();
-            if (scrollBarUsable)
-                scrollBar.HandleInput();
+            scrollBar.HandleInput();
         }
 
         public virtual void Update()
@@ -89,18 +105,39 @@ namespace CommonCode.UI
         {
             scrollBar.Draw(sb);
             sb.End();
+
             RasterizerState scissorState = new RasterizerState();
             scissorState.ScissorTestEnable = true;
             sb.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, SamplerState.AnisotropicWrap, DepthStencilState.Default, scissorState);
-            sb.GraphicsDevice.ScissorRectangle = new Rectangle((int)(screenPosition.X + positionOffset.X), (int)(screenPosition.Y + positionOffset.Y), (int)dimensions.X, (int)dimensions.Y);
-            Vector2 offsetFromScroll = Vector2.Zero;
-            if (scrollBarUsable)
-                offsetFromScroll.Y = scrollBar.CurrentPos;
-            for (int i = 0; i < lines.Length; i++)
-                sb.DrawString(ScreenManager.Globals.Fonts["Default"], lines[i].Text, lines[i].Position + positionOffset + screenPosition - offsetFromScroll, lines[i].Color);
+            sb.GraphicsDevice.ScissorRectangle = new Rectangle((int)(screenPosition.X + positionOffset.X) + padding.X, (int)(screenPosition.Y + positionOffset.Y) + padding.Y, dimensions.X - padding.Right, dimensions.Y - padding.Bottom);
+
+            Coordinate offsetFromScroll = new Coordinate(0, scrollBar.CurrentPos);
+            int i = 0, curLine = 1, limit = lines.Length;
+
+            //Finds the earliest line that may be drawn
+            for(; curLine < lines.Length; curLine++)
+            {
+                if (lines[curLine].Position.Y >= scrollBar.CurrentPos)
+                {
+                    i = curLine - 1;
+                    break;
+                }
+            }
+            //Finds the last line that may be 
+            int maxHeight = scrollBar.CurrentPos + dimensions.Y - padding.Bottom;
+            for (; curLine < lines.Length; curLine++)
+            {
+                if(lines[curLine].Position.Y > maxHeight)
+                {
+                    limit = curLine;
+                    break;
+                }
+            }
+            for (; i < limit; i++)
+                sb.DrawString(ScreenManager.Globals.Fonts[font], lines[i].Text, (Coordinate)(lines[i].Position + positionOffset + screenPosition - offsetFromScroll) + (Coordinate)padding.Location, lines[i].Color);
+
             sb.End();
             sb.GraphicsDevice.ScissorRectangle = new Rectangle();
-            //sb.GraphicsDevice.RasterizerState.ScissorTestEnable = false;
             sb.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied);
         }
 
@@ -110,7 +147,7 @@ namespace CommonCode.UI
         /// <param name="boxDimensions"></param>
         /// <param name="text"></param>
         /// <returns></returns>
-        private StringPositionColor[] WordWrap(Vector2 boxDimensions, string text, string font, Color color)
+        StringPositionColor[] wordWrap(Vector2 boxDimensions, string text, string font, Color color)
         {
             List<StringPositionColor> tempLineList = new List<StringPositionColor>();
             int yDist = 0;
@@ -196,13 +233,10 @@ namespace CommonCode.UI
                     }
                 } while (!lineTooLong && !endOfText);
 
-                if (wordsParsedThisLine == 0)//If this, it got stuck because a single "word" took up more than a whole line.
+                if (wordsParsedThisLine == 0)//If this is true, it got stuck because a single "word" took up more than a whole line.
                 {
-                    //TODO: write a function that can break up a word
                     throw new ArgumentException("A word could not be broken up to fit within boxDimensions.", "text");
                 }
-                //if (endOfText && ScreenManager.DrawData.Fonts[font].MeasureString(currentLine).X < boxDimensions.X)
-                //    previousLine = currentLine;
 
                 tempLineList.Add(new StringPositionColor(previousLine.Trim(), new Vector2(0, yDist), color));
                 yDist += 20;
@@ -250,11 +284,11 @@ namespace CommonCode.UI
 
         public Vector2 WorldPosition 
         { 
-            get { return screenPosition; } 
+            get { return screenPosition; }
             set
-            {
-                scrollBar.Position += (Coordinate)(value - screenPosition);
-                screenPosition = value; 
+            {                
+                screenPosition = value;
+                scrollBar.Position = (Coordinate)(screenPosition + positionOffset + scrollBarOffset);
             } 
         }
 
@@ -262,15 +296,15 @@ namespace CommonCode.UI
         { 
             get { return positionOffset; } 
             set 
-            {
-                scrollBar.Position += (Coordinate)(value - positionOffset);
-                positionOffset = value; 
+            {                
+                positionOffset = value;
+                scrollBar.Position = (Coordinate)(screenPosition + positionOffset + scrollBarOffset);
             } 
         }
 
         public float Rotation { get { return rotation; } set { rotation = value; } }
 
-        public Vector2 Scale { get { return dimensions; } set { dimensions = value; } }
+        public Vector2 Scale { get { return dimensions; } set { dimensions = (Coordinate)value; } }
 
         public Color Color { get { return color; } set { color = value; } }
 
@@ -281,9 +315,22 @@ namespace CommonCode.UI
             get { return text; }
             set
             {
-                lines = WordWrap(dimensions, value, font, color);
-                //scrollBar.Resize((int)(lines.Length * 20 + 5 > dimensions.Y ? lines.Length * 20 + 5 : dimensions.Y + 5), (int)dimensions.Y);
-                text = value;
+                if (value != text)
+                {
+                    lines = wordWrap(new Vector2(dimensions.X - padding.Right, dimensions.Y - padding.Bottom), value, font, color);
+                    bool needsScrollBar = lines.Length * 20 + 5 > dimensions.Y;
+                    if (needsScrollBar)
+                    {
+                        scrollBar.ControlledArea = lines.Length * 20 + 5;
+                        scrollBar.Enabled = true;
+                    }
+                    else
+                    {
+                        scrollBar.ControlledArea = dimensions.Y;
+                        scrollBar.Enabled = false;
+                    }
+                    text = value;
+                }
             }
         }
 
@@ -298,10 +345,8 @@ namespace CommonCode.UI
                (InputManager.MousePosition.Y < screenPosition.Y + Offset.Y + dimensions.Y &&
                 InputManager.MousePosition.X < screenPosition.X + Offset.X + dimensions.X))
             {
-                if (Collided != null)
-                    Collided(this, EventArgs.Empty);
-                if (Selected != null)
-                    Selected(this, EventArgs.Empty);
+                Collided?.Invoke(this, EventArgs.Empty);
+                Selected?.Invoke(this, EventArgs.Empty);
                 IsSelected = true;
                 return true;
             }
@@ -312,10 +357,9 @@ namespace CommonCode.UI
 
         public bool OnClicked()
         {
-            if (this.OnCollision() && InputManager.IsMouseButtonDown(MouseButtons.LMB))
+            if (OnCollision() && InputManager.IsMouseButtonDown(MouseButtons.LMB))
             {
-                if (Clicked != null)
-                    Clicked(this, EventArgs.Empty);
+                Clicked?.Invoke(this, EventArgs.Empty);
                 return true;
             }
             return false;
