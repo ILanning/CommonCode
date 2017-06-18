@@ -31,6 +31,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="nunit.framework, Version=3.7.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
+      <HintPath>..\packages\NUnit.3.7.1\lib\net45\nunit.framework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="OpenTK">
       <HintPath>$(MonoGameInstallDirectory)\MonoGame\v3.0\Assemblies\DesktopGL\OpenTK.dll</HintPath>
     </Reference>
@@ -51,6 +55,7 @@
     <Compile Include="Drawing\2D\Line2D.cs" />
     <Compile Include="Drawing\IDrawable3D.cs" />
     <Compile Include="QuadMap.cs" />
+    <Compile Include="Testing\Test.cs" />
     <Compile Include="UI\Button.cs" />
     <Compile Include="UI\Page.cs" />
     <Compile Include="Drawing\2D\Sprite.cs" />
@@ -126,6 +131,15 @@
     <Compile Include="Windows\WindowEnums.cs" />
     <Compile Include="Windows\WindowFormat.cs" />
     <Compile Include="Windows\WindowManager.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ComponentUI\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
